@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MediaManager", ".\src\MediaManager.fsproj", "{51D14282-AC6B-4140-B78D-0971C352F67E}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MediaManagerTests", "tests\MediaManagerTests.fsproj", "{B31B7651-6BEB-4DD9-826B-B3D4BA43D772}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{51D14282-AC6B-4140-B78D-0971C352F67E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51D14282-AC6B-4140-B78D-0971C352F67E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D14282-AC6B-4140-B78D-0971C352F67E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51D14282-AC6B-4140-B78D-0971C352F67E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B31B7651-6BEB-4DD9-826B-B3D4BA43D772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B31B7651-6BEB-4DD9-826B-B3D4BA43D772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B31B7651-6BEB-4DD9-826B-B3D4BA43D772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B31B7651-6BEB-4DD9-826B-B3D4BA43D772}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E29038EC-36CF-4C29-BFA9-CACABC577FA1}
+	EndGlobalSection
+EndGlobal

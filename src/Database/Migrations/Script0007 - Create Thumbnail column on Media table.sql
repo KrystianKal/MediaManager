@@ -1,0 +1,2 @@
+ALTER TABLE media
+ADD COLUMN IF NOT EXISTS thumbnails text[] NOT NULL DEFAULT '{}';

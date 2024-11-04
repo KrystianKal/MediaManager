@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Models\Common\Id.fs" />
+    <Compile Include="Models\Common\Path.fs" />
+    <Compile Include="Models\MediaFormats.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="dbup-postgresql" Version="6.0.0-beta.13" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
+    <PackageReference Include="Npgsql.FSharp" Version="5.7.0" />
+    <PackageReference Include="Npgsql.Json.NET" Version="8.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.9.0" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\Tag.fs" />
+    <Compile Include="Models\Media.fs" />
+    <Compile Include="Models\Collection.fs" />
+    <Compile Include="Models\Directory.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Database/**/*.sql"/>
+    <Compile Include="Database\Utils.fs" />
+    <Compile Include="Database\Dto\MediaDto.fs" />
+    <Compile Include="Database\Dto\DirectoryDto.fs" />
+    <Compile Include="Database\Serializers.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Features\Common\Responses.fs" />
+    <Compile Include="Features\Common\Parsers.fs" />
+    <Compile Include="Features\Common\Query.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Features\Processing\Ffmpeg.fs" />
+    <Compile Include="Features\Processing\Thumbnail.fs" />
+    <Compile Include="Features\Processing\Metadata.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Features\Media\DAL\MediaMappers.fs" />
+    <Compile Include="Features\Media\GetAllMedia.fs" />
+    <Compile Include="Features\Media\UpdateViewCount.fs" />
+    <Compile Include="Features\Media\AddTagsToMedia.fs" />
+    <Compile Include="Features\Media\RemoveTagsFromMedia.fs" />
+    <Compile Include="Features\Media\GetMediaById.fs" />
+    <Compile Include="Features\Media\MediaQueries.fs" />
+    <Compile Include="Features\Media\Favorite.fs" />
+    <Compile Include="Features\Media\Tags\CreateTag.fs" />
+    <Compile Include="Features\Media\Tags\GetAllTags.fs" />
+    <Compile Include="Features\Media\RemoveTagFromMedia.fs" />
+    <Compile Include="Features\Directories\RegisterDirectory.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Routing.fs" />
+    <Content Include="Sandbox\8a3lyxn04gs91.png" />
+    <Content Include="Sandbox\6.jpg" />
+    <Content Include="Sandbox\1634152036079.webm" />
+    <None Include="Sandbox\files.fsx" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>
