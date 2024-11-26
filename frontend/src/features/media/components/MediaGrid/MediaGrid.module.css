@@ -1,0 +1,9 @@
+.evenGrid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    column-gap: 4px;
+}
+.denseGrid {
+    column-count: 5;
+    column-gap: 4px;    
+}

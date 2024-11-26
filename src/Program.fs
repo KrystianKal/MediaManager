@@ -4,14 +4,10 @@ namespace MediaManager
 
 open System.Threading.Channels
 open MediaManager.Database.Utils.DatabaseUtils
-open MediaManager.Features.Common.Responses
 open MediaManager.Features.Directories
 open MediaManager.Features.Directories.FileEvents
 open MediaManager.Features.Directories.FileHostedService
-open MediaManager.Features.Directories.Watcher
-open MediaManager.Features.Processing
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting

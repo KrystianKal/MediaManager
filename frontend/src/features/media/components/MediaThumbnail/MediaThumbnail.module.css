@@ -1,0 +1,38 @@
+.thumbnailWrapper {
+    position: relative;
+    display: inline-block;
+    transition: transform 0.1s ease-in-out;
+    &:hover {
+        transform: scale(1.01);
+    }
+}
+
+.thumbnail {
+    display: block;
+    width: 100%;
+    /*width: 300px;*/
+    height: auto;
+}
+
+.overlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 1px;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+}
+.overlayBottomRight {
+    bottom: 7px;
+    right: 7px;
+    pointer-events: none;
+}
+.overlayTopLeft {
+    top: 7px;
+    left: 7px;
+}
+
+.checkbox {
+    z-index: 1;
+    --mantine-cursor-type:pointer;
+}
