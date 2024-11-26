@@ -5,9 +5,6 @@ open MediaManager.Models.Common.Path
 open MediaManager.Models.MediaFormats
 
 
-type FilePath = private FilePath of string  
-//TODO Validate isFile and file extension
-
 type Image = {
   Format: ImageFormat
 }
@@ -22,8 +19,6 @@ type MediaType =
   | Image of Image
   | Video of Video
 
-//TODO delete Name column from database
-//combine path+name into path
 type Media = {
   Id: Guid
   //path without file name

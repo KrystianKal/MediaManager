@@ -5,7 +5,8 @@ open MediaManager.Models.Common.Path
 
 
 //TODO what will happen if directory name is changed?
-//at some point show error, allow for changing names
+//if a directory is not found, user will be asked
+//whether the directory was deleted or was renamed
 type Directory = {
     Id:Guid
     Path: Path

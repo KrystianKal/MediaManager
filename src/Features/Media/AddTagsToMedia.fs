@@ -3,11 +3,14 @@ module MediaManager.Features.Media.AddTagsToMedia
 open System
 open MediaManager.Features.Common
 open MediaManager.Features.Common.Responses
+open MediaManager.Models
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Http
+open MediaManager.RopResult
+open MediaManager.Models.Common.Id
 open Npgsql.FSharp
+open MediaManager.Features.Media
 
-let apply (id:Guid) (tags: string list) connectionString =
+let private applyCommand connectionString (tags: string list) (id:Guid) =
     connectionString
     |> Sql.connect
     |> Sql.query @"
@@ -26,29 +29,21 @@ let apply (id:Guid) (tags: string list) connectionString =
                        "mediaId", Sql.uuid id
                        "tagNames", Sql.stringArray  (Array.ofList <| tags)
                        ]
-    |> Sql.executeNonQueryAsync
+    |> Command.execute
+    |>>= (fun _ -> succeed id)
 
-type AddTagsRequest = {
+type private AddTagsRequest = {
     TagNames: string list
 }
-let RegisterEndpoint path (app: WebApplication) connectionString =
-    app.MapPost(path,
-       EndpointDelegate<string,AddTagsRequest>(fun ctx id request->
-            task{
-                match Parsers.tryParseGuid id with
-                | Some guid ->
-                    let! _ = apply guid request.TagNames connectionString
-                    return! ctx.Ok ""
-                | None -> 
-                    return! ctx.BadRequest {| Error =  "Invalid Id format" |}
-            }
-       ))
-       .WithName("Add Tags to Media")
-       .WithDisplayName("Add Tags to Media")
-       .WithOpenApi(fun o ->
-           o.OperationId <- "AddTagsToMedia"
-           o.Summary <- "Add Tags to Media"
-           o )
-       .Produces(StatusCodes.Status200OK)
-       .Produces(StatusCodes.Status400BadRequest)
-       |> ignore
+let private endpointHandler (connectionString:string) = EndpointDelegate<string,AddTagsRequest>( fun id request ->
+    succeed id
+    >>= createId
+    >>=| (applyCommand connectionString request.TagNames)
+    |>>=| (GetMediaById.query connectionString)
+    <|!> ok
+    |> toHttpResult
+)
+    
+let RegisterPostEndpoint path (app: WebApplication) connectionString =
+    app.MapPost(path, endpointHandler connectionString)
+    |> ignore

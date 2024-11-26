@@ -1,10 +1,9 @@
 module MediaManager.Features.Media.Tags.CreateTag
 
 open System
+open MediaManager.Features.Common
 open Npgsql.FSharp
-
-//TODO Create a trigger that will delete unused tags older than 1 day
-//May be not needed in case postgres is used UPSERT
+//TODO validate
 let Apply name connectionString  =
     connectionString
     |> Sql.connect
@@ -13,6 +12,6 @@ let Apply name connectionString  =
         VALUES (@name)
     "
     |> Sql.parameters ["name", Sql.text name]
-    |> Sql.executeNonQueryAsync
+    |> Command.execute
     
 

@@ -2,6 +2,8 @@ module MediaManager.Models.Common.Path
 
 open System
 open System.IO
+open MediaManager.RopResult
+open MediaManager.Messages
 
 type Path = Path of string
 let value (Path path) = path
@@ -29,39 +31,41 @@ let private validatePath (p:string array) = Array.forall isValidPathSection p
 
 let private segmentPath (p: string) =
     p.Split([|'/';'\\'|], System.StringSplitOptions.RemoveEmptyEntries)
+let exists (path:Path) =
+    Directory.Exists(value path)
 let createAbsolute path =
     if String.IsNullOrWhiteSpace path then
-        Error "Path cannot be empty"
+        fail (InvalidPath "Path cannot be empty")
     else 
     let parts = segmentPath path
     if path.Length < 4 then
-        Error "Path is too short. Example shortest path: 'C:\\'"
+        fail (InvalidPath  "Path is too short. Example shortest path: 'C:\\'")
     elif hasConsecutiveSlashes path then 
-        Error @"Path has consecutive slashes \\'"
+        fail (InvalidPath  @"Path has consecutive slashes \\'")
     elif not (isLetter path[0] )then
-        Error "Path must start with a letter"
+        fail (InvalidPath  "Path must start with a letter")
     elif not (endsWithSlash path ) then
-        Error "Path must end with slash"
+        fail (InvalidPath  "Path must end with slash")
     elif not(isValidDriveSection parts[0]) then
-        Error "Invalid drive section"
+        fail (InvalidPath  "Invalid drive section")
     //skip drive section
     elif not (validatePath parts[1..]) then 
-        Error "Path is not valid"
+        fail (InvalidPath  "Path is not valid")
     else
-        Ok (Path path)
+        succeed (Path path)
 let createRelative path = 
     if String.IsNullOrWhiteSpace path then
-        Error "Path cannot be empty"
+        fail (InvalidPath  "Path cannot be empty")
     else 
     let parts = segmentPath path
     
     if path.Length < 2 then
-        Error "Path is too short. Example shortest path: '\\p"
+        fail (InvalidPath  "Path is too short. Example shortest path: '\\p")
     elif hasConsecutiveSlashes path then 
-        Error @"Path has consecutive slashes \\'"
+        fail (InvalidPath  @"Path has consecutive slashes \\'")
     elif not (validatePath parts) then 
-        Error "Path is not valid"
+        fail (InvalidPath  "Path is not valid")
     elif not (endsWithSlash path ) then
-        Error "Path must end with slash"
+        fail (InvalidPath  "Path must end with slash")
     else
-        Ok (Path path)
+        succeed (Path path)

@@ -1,13 +1,13 @@
 module MediaManager.Features.Processing.Thumbnail
 
 open System
+open MediaManager
+open MediaManager.Logger
 open MediaManager.Models
 open MediaManager.Models.Common
 //TODO Global Quality value
 //TODO lower resolution
 //TODO Skip color analysis for mkv
-//TODO Add logging
-//TODO fail or something if thumbnail already do be existing
     
 let private formatTimestamp (seconds:float ) =
     let ts = System.TimeSpan.FromSeconds(seconds)
@@ -19,46 +19,70 @@ let private generateUniqueThumbnailName (m:Media) =
     $"{Path.value m.Path}\\Thumbnails\\{m.Name}_{Media.getExt m.Type}_{timestamp}_t"
 let private generateImageThumbnail (inputFile:string) (outputFileName:string) =
     let outputFile = $"{outputFileName}.jpg"
-    Ffmpeg.StartProcess $"-i {inputFile} -q:v 14 {outputFile}"
+    let success = Ffmpeg.StartProcess $"-i \"{inputFile}\" -q:v 14 \"{outputFile}\""
+    if not success then
+        log Error $"Failed generating image thumbnail for: {inputFile}"
     outputFile
-    
+
+//Some video formats don't work with -ss, therefore use fallback
+let private generateVideoThumbnailWithFallback (inputFile:string) (timestamp: string) (outputFile:string) =
+    let success = Ffmpeg.StartProcess $"-i \"{inputFile}\" -ss {timestamp} -frames:v 1 -q:v 14  \"{outputFile}\""
+    let mutable firstTry = true
+    if not success then
+        log Information $"Failed generating video thumbnail for: {inputFile}; Trying fallback"
+        firstTry <- false
+        let fallbackSuccess = Ffmpeg.StartProcess $"-i \"{inputFile}\" -q:v 14 \"{outputFile}\""
+        if not fallbackSuccess then
+            log Error $"Failed generating fallback thumbnail for: {inputFile}"
+    //TODO return option/result, as of now if a thumbnail will fail to generate it will still be inserted into db
+    firstTry
+        
+        
 let private generateVideoThumbnail (inputFile:string) (videoDuration: int) (outputFileName:string) =
     let outputFile = $"{outputFileName}.jpg"
     let middleTimestamp = formatTimestamp ((float videoDuration)/2.0 )
-    Ffmpeg.StartProcess $"-ss {middleTimestamp} -i {inputFile} -frames:v 1 -q:v 14 {outputFile}" 
+    generateVideoThumbnailWithFallback inputFile middleTimestamp outputFile |> ignore
     outputFile
 
-let private generateMultipleVideoThumbnails (inputFile:string) (duration: int) (outputPrefix:string) n =
-    // First frame is taken on the first second
-    let interval = ( float duration - 1.0) / float (n - 1)
+let private generateMultipleVideoThumbnails (inputFile:string) (duration: int) (outputPrefix:string) count =
+    let calculateTimestamp (startTime: float ) (interval : float) (index: int) =
+        startTime + (float index * interval)
+    let calculateInterval (duration:float) (count: int) =
+        // skip last 2 seconds to avoid time overflow
+        ( float duration - 2.0) / float (count - 1)
+        
+    let interval = calculateInterval duration count
+    let mutable hadToFallback = false
     [|
-       for i in 0 .. (n - 1) do
-           let formattedTimestamp = formatTimestamp (1.0 + (float i * interval))
-           let outputFile = $"{outputPrefix}_{i+1}.jpg"
-           Ffmpeg.StartProcess $"-ss {formattedTimestamp} -i {inputFile} -frames:v 1 -q:v 14 {outputFile}"
-           outputFile
+       for i in 0 .. (count - 1) do
+           if not hadToFallback then
+               let formattedTimestamp =
+                   (calculateTimestamp 1.0 interval i)
+                   |> formatTimestamp
+               let outputFile = $"{outputPrefix}_{i+1}.jpg"
+               hadToFallback <- not(generateVideoThumbnailWithFallback inputFile formattedTimestamp outputFile)
+               outputFile
     |]
         
 
+let generateThumbnail (m: Media): Media =
+    let generateThumbnailsForVideo (v: Video) =
+        if v.DurationSeconds <= 3 then
+            [| generateVideoThumbnail (Media.fullName m) v.DurationSeconds (generateUniqueThumbnailName m) |]
+        else
+            //TODO Calculate N based on video length
+            generateMultipleVideoThumbnails  (Media.fullName m) v.DurationSeconds (generateUniqueThumbnailName m) 5
+        
+    let thumbnails =
+        match m.Type with 
+        | Image _ -> [| generateImageThumbnail (Media.fullName m) (generateUniqueThumbnailName m) |]
+        | Video v -> generateThumbnailsForVideo v
+    log Information $"Generated '{thumbnails.Length}' thumbnails for {Media.fullName m}"
+    {m with Thumbnails = Set.ofArray thumbnails}
+
 //TODO If thumbnail was deleted regenerate 
-//single thumbnail directory -> same file name conflict
-//TODO detect media deletion
-//TODO delete thumbnail after source media was deleted
-//TODO scan for thumbnails that are not assigned to any media and show erorr
-let generateThumbnails (files: Media array) =
+//TODO scan for thumbnails that are not assigned to any media and show error
+let generateThumbnails (files: Media array): Media array =
     files
-    |> Array.map ( fun m ->
-        let generateThumbnailsForVideo (v: Video) =
-            if v.DurationSeconds <= 3 then
-                [| generateVideoThumbnail (Media.fullName m) v.DurationSeconds (generateUniqueThumbnailName m) |]
-            else
-                //TODO Calculate N based on video length
-                generateMultipleVideoThumbnails  (Media.fullName m) v.DurationSeconds (generateUniqueThumbnailName m) 5
-            
-        let thumbnails =
-            match m.Type with 
-            | Image _ -> [| generateImageThumbnail (Media.fullName m) (generateUniqueThumbnailName m) |]
-            | Video v -> generateThumbnailsForVideo v
-        {m with Thumbnails = Set.ofArray thumbnails}
-    )
+    |> Array.map generateThumbnail 
     

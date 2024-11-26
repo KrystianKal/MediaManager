@@ -1,19 +1,18 @@
 module MediaManager.Features.Media.GetAllMedia
 
-open System
-open System.Threading.Tasks
-
+open MediaManager
+open MediaManager.Features.Media.Responses
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Npgsql.FSharp
-open MediaManager.Database.Dto.MediaDto
 open MediaManager.Database.Serializers
 open MediaManager.Features.Common.Responses
+open MediaManager.RopResult
 
 //TODO add pagination
 //TODO add filtering
 //TODO add sorting
-let private Query connectionString: Task<MediaDto list> =
+let private query connectionString=
     connectionString
     |> Sql.connect
     //use coalesce instead of array_agg to get the json type
@@ -29,9 +28,18 @@ let private Query connectionString: Task<MediaDto list> =
         "
     |> Sql.executeAsync deserializeMedia
     
-let RegisterEndpoint path (app: WebApplication) connectionString =
-    app.MapGet(path, Func<HttpContext, Task> (fun (ctx: HttpContext) ->
-        task {
-            let! media = Query connectionString
-            return! ctx.Ok media
-        }) ) |>ignore
+    
+let RegisterGetEndpoint path (app: WebApplication) connectionString =
+    let mapDtosToResponses dtos =
+        dtos |> List.map MediaResponse.fromDto
+        
+    app.MapGet(path, EndpointDelegate (fun _ ->
+            query connectionString
+            |> aggregateAsync
+            |>>- Logger.logSuccess Logger.Information "GetAllMedia fetched" (fun m -> m.Length)
+            <|!> mapDtosToResponses
+            <|!> ok
+            |> toHttpResult
+        ) )
+        .Produces<MediaResponse.MediaResponse array> 
+    |>ignore

@@ -4,7 +4,8 @@ open System.Diagnostics
 open System
 //TODO add cancellation token
 let private StartInfo (arguments:string) =
-    let startInfo = ProcessStartInfo("ffmpeg.exe", $"-hide_banner -loglevel error {arguments}")
+    let sanitizedArgs = arguments.Replace("\\","/")
+    let startInfo = ProcessStartInfo("ffmpeg.exe", $"-hide_banner -loglevel error -strict unofficial {sanitizedArgs}")
     startInfo.RedirectStandardError <- true
     startInfo.RedirectStandardOutput <- false
     startInfo.UseShellExecute <- false
@@ -17,5 +18,5 @@ let StartProcess (arguments:string) =
     p.Start() |> ignore
     p.WaitForExit()
     let errorOutput = p.StandardError.ReadToEnd()
-    if not (String.IsNullOrEmpty(errorOutput)) then
-        printfn $"FFmpeg Error: %s{errorOutput}"
+    let noErrors = String.IsNullOrEmpty(errorOutput)
+    noErrors && p.ExitCode = 0

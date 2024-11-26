@@ -4,7 +4,7 @@ open MediaManager.Features.Common.Responses
 open Microsoft.AspNetCore.Builder
 open Npgsql.FSharp
 open MediaManager.Database.Serializers
-let Query connectionString =
+let query connectionString =
     connectionString
     |> Sql.connect
     |> Sql.query @"
@@ -12,10 +12,10 @@ let Query connectionString =
     "
     |> Sql.executeAsync deserializeTag
 
-let RegisterEndpoint path (app:WebApplication) connectionString =
-    app.MapGet(path, EndpointDelegate( fun ctx ->
-        task {
-            let! tags = Query connectionString
-            return! ctx.Ok tags
-        }
+let RegisterGetEndpoint path (app:WebApplication) (connectionString: string) =
+    app.MapGet(path, EndpointDelegate( fun _ ->
+       task{
+           let! response = query connectionString
+           return ok response
+       }
     )) |> ignore

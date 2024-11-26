@@ -18,7 +18,6 @@ module Collection =
             CreatedAt = DateTimeOffset.Now 
         }
     
-  //TODO If needed change to Id comparison to avoid duplicate items
     let addItems items collection =
         {
             collection with Items = Set.union items collection.Items

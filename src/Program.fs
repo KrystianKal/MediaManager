@@ -2,8 +2,13 @@ namespace MediaManager
 
 #nowarn "20" //remove the need for |> ignore
 
+open System.Threading.Channels
 open MediaManager.Database.Utils.DatabaseUtils
 open MediaManager.Features.Common.Responses
+open MediaManager.Features.Directories
+open MediaManager.Features.Directories.FileEvents
+open MediaManager.Features.Directories.FileHostedService
+open MediaManager.Features.Directories.Watcher
 open MediaManager.Features.Processing
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
@@ -25,32 +30,30 @@ module Program =
         // PurgeDatabase <| connectionString  
         
         let migrationResult = ApplyMigrations connectionString
-
+        let fileTaskQueue = Channel.CreateUnbounded<FileEvent>()
+        Watcher.watchExistingDirectories connectionString fileTaskQueue
+        
+        builder.Services.AddHostedService<FileHostedService>(
+            fun _ ->
+                new FileHostedService(fileTaskQueue)
+            )
         builder.Services.AddControllers()
         builder.Services.AddEndpointsApiExplorer()
         builder.Services.AddSwaggerGen()
 
         let app = builder.Build()
+        
+        let task = ServeDirectories.serveDirectories app connectionString
+        task.Wait()
+        
 
         if app.Environment.IsDevelopment() then
             app.UseSwagger() |> ignore
             app.UseSwaggerUI() |> ignore
 
-        app.UseHttpsRedirection()
+        // app.UseHttpsRedirection()
        
-        //TODO Pass in logger?
-        //TODO Validate path, create FilePath
-        app.RegisterEndpoints connectionString
-        // app.MapGet("/tt",
-        //    EndpointDelegate<string>( fun(ctx: HttpContext) dirPath ->
-        //        task{
-        //        // let dir = @"C:\Users\Krystian\source\repos\MediaManager\src\Sandbox"
-        //        // let x = Metadata.ScanFilesInDirectory dirPath
-        //        // let z = Thumbnail.generateThumbnails x
-        //        // printf "%d" z.Length
-        //        // z.Length |> ctx.WriteJson 
-        //        }
-        // ))
+        app.RegisterEndpoints connectionString fileTaskQueue
         
         app.MapControllers()
         

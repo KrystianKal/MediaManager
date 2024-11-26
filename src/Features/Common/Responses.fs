@@ -2,22 +2,64 @@ module MediaManager.Features.Common.Responses
 
 open System
 open System.Threading.Tasks
-open Microsoft.AspNetCore.Http
+open MediaManager.Messages
+open MediaManager.RopResult
+open Microsoft.AspNetCore.Mvc
 
-type EndpointDelegate = Func<HttpContext,Task>
-type EndpointDelegate<'T> = Func<HttpContext,'T,Task>
-type EndpointDelegate<'T1, 'T2> = Func<HttpContext,'T1,'T2,Task>
-
-type HttpContext with
-    member ctx.WithStatusCode (sc: int) (content: obj) =
-        ctx.StatusCode sc
-        ctx.WriteJson content
-    member ctx.Ok (content:obj) = ctx.WithStatusCode StatusCodes.Status200OK content
-    member ctx.Created (content:obj) = ctx.WithStatusCode StatusCodes.Status201Created content
-    member ctx.NotFound (content:obj) = ctx.WithStatusCode StatusCodes.Status404NotFound content
-    member ctx.BadRequest (content:obj) = ctx.WithStatusCode StatusCodes.Status400BadRequest content
+type EndpointDelegate = Func<Task<IActionResult>>
+type EndpointDelegate<'T1> = Func<'T1,Task<IActionResult>>
+type EndpointDelegate<'T1,'T2> = Func<'T1,'T2,Task<IActionResult>>
+let ok content = OkObjectResult(content) :> IActionResult
+let created (uri:string) content = CreatedResult(uri, content) :> IActionResult
+             
+let InternalServerErrorResult msgs =
+        let res = ObjectResult(msgs)
+        res.StatusCode <- 500
+        res :> IActionResult
+type ResponseMessage =
+    | NotFound
+    | BadRequest of string
+    | InternalServerError of string
     
-    member ctx.WriteJson (o:obj) =
-      ctx.Response.WriteAsJsonAsync(o)
-    member ctx.StatusCode sc =
-       ctx.Response.StatusCode <- sc
+let classify (msg: Message)=
+    match msg with 
+    | InvalidGuidFormat
+    | NoRowsAffected ->
+        BadRequest $"{msg}"
+    | InvalidPath p ->
+        BadRequest p
+    | ResourceNotFound ->
+        NotFound
+    | ExpectedSingleButFoundMany
+    | DeserializationFailed ->
+        InternalServerError $"{msg}"
+        
+//TODO test
+let primaryMsg msgs =
+    msgs
+    |> List.map classify
+    |> List.head // can assume at least one
+let badRequestToString msgs =
+    msgs
+    |> List.map classify
+    |> List.choose (function BadRequest s -> Some s | _ -> None)
+    |> List.map (sprintf "ValidationError: %s;")
+    |> List.reduce (+)
+    
+
+let toHttpResult (result:Task<RopResult<IActionResult>>) : Task<IActionResult> =
+    task{
+    match! result with 
+    | Success (x,_) -> return x
+    | Failure msgs ->
+        return
+            match primaryMsg msgs with
+            | NotFound ->
+                NotFoundResult()
+                :> IActionResult
+            | BadRequest _->
+                BadRequestObjectResult(badRequestToString msgs)
+                :> IActionResult
+            | InternalServerError ise ->
+                InternalServerErrorResult ise
+    }

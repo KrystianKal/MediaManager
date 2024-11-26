@@ -1,9 +1,10 @@
 module MediaManager.Features.Media.UpdateViewCount
 
 open System
+open MediaManager.Features.Common
 open Npgsql.FSharp
 
-let Apply (id: Guid) connectionString  =
+let applyCommand connectionString  (id: Guid) =
     connectionString
     |> Sql.connect
     |> Sql.query @"
@@ -12,6 +13,6 @@ let Apply (id: Guid) connectionString  =
         WHERE id = @id 
     "
     |> Sql.parameters ["id", Sql.uuid id]
-    |> Sql.executeNonQueryAsync
+    |> Command.execute
      
 

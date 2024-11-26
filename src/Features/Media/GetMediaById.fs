@@ -2,17 +2,19 @@ module MediaManager.Features.Media.GetMediaById
 
 open System
 open System.Threading.Tasks
-open MediaManager.Features.Common
-open MediaManager.Features.Media.DAL
+open MediaManager.Features.Media.Responses.MediaResponse
+open MediaManager.Models.Common.Id
+open MediaManager.RopResult
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Npgsql.FSharp
+open MediaManager.Features.Media
 open MediaManager.Database.Serializers
 open MediaManager.Database.Dto.MediaDto
 open MediaManager.Features.Common.Query
 open MediaManager.Features.Common.Responses
 
-let Query (id:Guid) connectionString: Task<Option<MediaDto>> =
+let query connectionString (id:Guid): Task<RopResult<MediaDto>> =
     connectionString
     |> Sql.connect
     |> Sql.query @"
@@ -26,18 +28,19 @@ let Query (id:Guid) connectionString: Task<Option<MediaDto>> =
     "
     |> Sql.parameters ["id", Sql.uuid id]
     |> Sql.executeAsync deserializeMedia
-    |> trySingleAsync
-    
-let RegisterEndpoint path (app: WebApplication) connectionString =
-    app.MapGet(path,
-       EndpointDelegate<string>(fun (ctx: HttpContext) id ->
-            task{
-                match Parsers.tryParseGuid id with
-                | Some guid ->
-                    let! media = Query guid connectionString
-                    let! _ = UpdateViewCount.Apply guid connectionString
-                    return! ctx.Ok media
-                | None -> 
-                    return! ctx.NotFound {| Error =  "Not found" |}
-            }
-       )) |> ignore
+    |> trySingleRAsync
+let private endpointHandler (connectionString:string) = EndpointDelegate<string>(fun id ->
+    let updateViewCount = (fun dto -> UpdateViewCount.applyCommand connectionString dto.Id)
+    succeed id
+    >>= createId
+    >>=| (query connectionString)
+    |>>-| updateViewCount
+    <|!> fromDto
+    <|!> ok
+    |> toHttpResult
+)
+let RegisterGetEndpoint path (app: WebApplication) connectionString =
+    app.MapGet(path, endpointHandler connectionString )
+        .Produces<MediaResponse>
+    |> ignore
+

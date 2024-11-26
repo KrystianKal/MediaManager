@@ -1,12 +1,15 @@
 module MediaManager.Features.Media.RemoveTagFromMedia
 
-open MediaManager.Features.Common
 open MediaManager.Features.Common.Responses
+open MediaManager.Database.Serializers
+open MediaManager.Models.Common.Id
+open MediaManager.Features.Common
+open MediaManager.RopResult
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Npgsql.FSharp
 
-let Apply id tag connectionString =
+let applyCommand connectionString tag id  =
     connectionString
     |> Sql.connect
     |> Sql.query @"
@@ -22,21 +25,20 @@ let Apply id tag connectionString =
                        "mediaId", Sql.uuid id
                        "tag", Sql.string tag
                        ]
-    |> Sql.executeNonQueryAsync
+    |> Command.execute
+    |>>= (fun _ ->succeed id)
 
-let RegisterEndpoint path (app: WebApplication) connectionString =
-    app.MapDelete(path,
-       EndpointDelegate<string,string>(fun ctx id tag->
-            task{
-                match Parsers.tryParseGuid id with
-                | Some guid ->
-                    match! Apply guid tag connectionString with
-                        | 1 -> return! ctx.Ok ""
-                        | _ -> return! ctx.BadRequest {| Error = "Media does not have this tag" |}
-                | None -> 
-                    return! ctx.BadRequest {| Error =  "Invalid Id format" |}
-            }
-       ))
+//todo validate tag
+let endpointHandler (connectionString: string) = EndpointDelegate<string,string>(fun id tag ->
+    succeed id
+    >>= createId
+    >>=| (applyCommand connectionString tag)
+    |>>=| (GetMediaById.query connectionString)
+    <|!> ok
+    |> toHttpResult
+    )
+let RegisterDeleteEndpoint path (app: WebApplication) connectionString =
+    app.MapDelete(path,endpointHandler connectionString )
        .WithName("Remove Tag from Media")
        .WithDisplayName("Remove Tag from Media")
        .WithOpenApi(fun o ->

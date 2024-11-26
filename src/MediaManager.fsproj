@@ -3,20 +3,23 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Models\Common\Id.fs" />
-    <Compile Include="Models\Common\Path.fs" />
-    <Compile Include="Models\MediaFormats.fs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="dbup-postgresql" Version="6.0.0-beta.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
     <PackageReference Include="Npgsql.FSharp" Version="5.7.0" />
     <PackageReference Include="Npgsql.Json.NET" Version="8.0.5" />
+    <PackageReference Include="Serilog" Version="4.1.1-dev-02318" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.9.0" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Message.fs" />
+    <Compile Include="RopResult.fs" />
+    <Compile Include="Logger.fs" />
+    <Compile Include="Models\Common\Id.fs" />
+    <Compile Include="Models\Common\Path.fs" />
+    <Compile Include="Models\MediaFormats.fs" />
     <Compile Include="Models\Tag.fs" />
     <Compile Include="Models\Media.fs" />
     <Compile Include="Models\Collection.fs" />
@@ -31,8 +34,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\Common\Responses.fs" />
-    <Compile Include="Features\Common\Parsers.fs" />
     <Compile Include="Features\Common\Query.fs" />
+    <Compile Include="Features\Common\Command.fs" />
+    <Compile Include="Features\Common\Utils.fs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\Processing\Ffmpeg.fs" />
@@ -41,24 +45,66 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\Media\DAL\MediaMappers.fs" />
-    <Compile Include="Features\Media\GetAllMedia.fs" />
+    <Compile Include="Features\Media\Responses\MediaResponse.fs" />
     <Compile Include="Features\Media\UpdateViewCount.fs" />
+    <Compile Include="Features\Media\GetMediaById.fs" />
+    <Compile Include="Features\Media\GetAllMedia.fs" />
     <Compile Include="Features\Media\AddTagsToMedia.fs" />
     <Compile Include="Features\Media\RemoveTagsFromMedia.fs" />
-    <Compile Include="Features\Media\GetMediaById.fs" />
     <Compile Include="Features\Media\MediaQueries.fs" />
     <Compile Include="Features\Media\Favorite.fs" />
     <Compile Include="Features\Media\Tags\CreateTag.fs" />
     <Compile Include="Features\Media\Tags\GetAllTags.fs" />
     <Compile Include="Features\Media\RemoveTagFromMedia.fs" />
+    <Compile Include="Features\Media\AddMedia.fs" />
+    <Compile Include="Features\Media\RemoveMedia.fs" />
+    <Compile Include="Features\Directories\FileEvents.fs" />
+    <Compile Include="Features\Directories\DirectoryMappers.fs" />
+    <Compile Include="Features\Directories\GetDirectoryById.fs" />
+    <Compile Include="Features\Directories\GetAllDirectories.fs" />
+    <Compile Include="Features\Directories\Watcher.fs" />
     <Compile Include="Features\Directories\RegisterDirectory.fs" />
+    <Compile Include="Features\Directories\ReactToOfflineChanges.fs" />
+    <Compile Include="Features\Directories\FileHostedService.fs" />
+    <Compile Include="Features\Directories\ServeDirectories.fs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Routing.fs" />
-    <Content Include="Sandbox\8a3lyxn04gs91.png" />
-    <Content Include="Sandbox\6.jpg" />
-    <Content Include="Sandbox\1634152036079.webm" />
     <None Include="Sandbox\files.fsx" />
     <Compile Include="Program.fs" />
+    <Content Include="bin\Debug\net8.0\zh-Hant\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\zh-Hans\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\tr\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\ru\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\pt-BR\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\Properties\launchSettings.json" />
+    <Content Include="bin\Debug\net8.0\pl\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\ko\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\ja\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\it\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\fr\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\es\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\de\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\cs\FSharp.Core.resources.dll" />
+    <Content Include="bin\Debug\net8.0\TagLibSharp.dll" />
+    <Content Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll" />
+    <Content Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll" />
+    <Content Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll" />
+    <Content Include="bin\Debug\net8.0\Npgsql.Json.NET.dll" />
+    <Content Include="bin\Debug\net8.0\Npgsql.FSharp.dll" />
+    <Content Include="bin\Debug\net8.0\Npgsql.dll" />
+    <Content Include="bin\Debug\net8.0\Newtonsoft.Json.dll" />
+    <Content Include="bin\Debug\net8.0\Microsoft.OpenApi.dll" />
+    <Content Include="bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll" />
+    <Content Include="bin\Debug\net8.0\MediaManager.runtimeconfig.json" />
+    <Content Include="bin\Debug\net8.0\MediaManager.pdb" />
+    <Content Include="bin\Debug\net8.0\MediaManager.exe" />
+    <Content Include="bin\Debug\net8.0\MediaManager.dll" />
+    <Content Include="bin\Debug\net8.0\MediaManager.deps.json" />
+    <Content Include="bin\Debug\net8.0\FSharp.Core.dll" />
+    <Content Include="bin\Debug\net8.0\dbup-postgresql.dll" />
+    <Content Include="bin\Debug\net8.0\dbup-core.dll" />
+    <Content Include="bin\Debug\net8.0\appsettings.json" />
+    <Content Include="bin\Debug\net8.0\appsettings.Development.json" />
   </ItemGroup>
 </Project>
