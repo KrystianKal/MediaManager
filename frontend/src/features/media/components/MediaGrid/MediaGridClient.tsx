@@ -10,10 +10,11 @@ import {useViewportSize} from "@mantine/hooks";
 import {MediaGridControls} from "@/src/features/media/components/MediaGrid/MediaGridControls/MediaGridControls";
 import {useSearchParams} from "next/navigation";
 import {GRID_TYPES} from "@/src/features/media/components/MediaGrid/MediaGrid";
+import MediaThumbnailMenu from "@/src/features/media/components/MediaThumbnailMenu";
 
 
 export function MediaGridClient({initialMedia}:{initialMedia:Media[]}) {
-  const [media, setMedia] = useState<Media[]>(initialMedia);
+  const [media] = useState<Media[]>(initialMedia);
   const searchParams = useSearchParams()
   let flow = searchParams.get('flow')
   
@@ -25,12 +26,6 @@ export function MediaGridClient({initialMedia}:{initialMedia:Media[]}) {
     ? <MasonryGrid media={media}/>
     : <EvenGrid media={media}/>
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const data = await getAllMedia();
-  //     setMedia(data)
-  //   })()
-  // },[])
   return (
     <MediaContextProvider>
       <MediaGridControls/>
@@ -43,7 +38,7 @@ function EvenGrid ({media}: {media:Media[]}) {
   return(
     <SimpleGrid className={styles.evenGrid}>
       {media.map( (m,idx) =>
-        <MediaThumbnail key={idx} media={m} ></MediaThumbnail>
+          <MediaThumbnail key={idx}  media={m} ></MediaThumbnail>
       )}
     </SimpleGrid>
   )
@@ -61,8 +56,7 @@ function MasonryGrid({media}: {media:Media[]}) {
   return(
     <div style={{ columnCount: cols }} className={styles.denseGrid}>
       {media.map( (m,idx) =>
-        <MediaThumbnail key={idx} media={m}></MediaThumbnail>
-
+          <MediaThumbnail key={idx} media={m}></MediaThumbnail>
       )}
     </div>
   )

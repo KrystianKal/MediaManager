@@ -1,5 +1,5 @@
 'use client'
-import {FloatingIndicator, Tooltip, UnstyledButton} from "@mantine/core";
+import {Center, FloatingIndicator, Tooltip, UnstyledButton} from "@mantine/core";
 import React from "react";
 import styles from "./MediaGridControls.module.css"
 import {GRID_TYPES} from "@/src/features/media/components/MediaGrid/MediaGrid";
@@ -47,7 +47,10 @@ export function MediaGridControls(){
       mod={{active: activeIndex === idx}}
       >
         <Tooltip label={item}>
-        { icon }
+          <Center>
+
+            { icon }
+          </Center>
         </Tooltip>
       </UnstyledButton>
     )

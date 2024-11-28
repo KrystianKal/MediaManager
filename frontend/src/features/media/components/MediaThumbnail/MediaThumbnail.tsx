@@ -8,6 +8,7 @@ import {formatVideoLength} from "@/src/features/media/utils";
 import {API_URL} from "@/src/lib/constants";
 import {useMediaGrid} from "@/src/features/media/MediaGridContext";
 import {useRouter} from "next/navigation";
+import MediaThumbnailMenu from "@/src/features/media/components/MediaThumbnailMenu/MediaThumbnailMenu";
 
 function advanceThumbnailIndex (prev:number, thumbnailCount:number) {
   const next_index: number = prev +1;
@@ -59,6 +60,7 @@ export function MediaThumbnail({media}: { media: Media}){
   const router = useRouter();
   return (
     <Box>
+      <MediaThumbnailMenu isSelected={isSelected} mediaId={media.id}>
       <Box
         ref={ref}
         className={styles.thumbnailWrapper} 
@@ -66,6 +68,7 @@ export function MediaThumbnail({media}: { media: Media}){
         onClick={() => router.push(`/media/${media.id}`)}
       >
         
+          
       <Image 
         src={`${API_URL}${media.thumbnails[currentThumbnailIndex]}`}
         className={styles.thumbnail}
@@ -81,6 +84,7 @@ export function MediaThumbnail({media}: { media: Media}){
         isSelectionMode={isSelectionMode} 
         onChange={() => toggleSelection(media.id)} />
       </Box>
+      </MediaThumbnailMenu>
     </Box>
   )
 }

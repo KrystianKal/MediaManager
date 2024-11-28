@@ -4,25 +4,23 @@
     width: fit-content;
     border-radius: var(--mantine-radius-md);
     padding: 3px;
-    border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 .control {
     padding: 3px 6px;
     line-height: 1;
-    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
     border-radius: var(--mantine-radius-md);
     font-size: var(--mantine-font-size-sm);
     transition: color 100ms ease;
     font-weight: 500;
-
     @mixin hover {
         color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
         background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
     }
 
     &[data-active] {
-        color: var(--mantine-color-white);
+        color: light-dark(var(--mantine-color-black),var(--mantine-color-white));
     }
 }
 
@@ -32,6 +30,7 @@
 }
 
 .indicator {
-    background-color: var(--mantine-primary-color-filled);
+    background-color: light-dark(var(--mantine-primary-color-white), var(--mantine-color-dark-6));
     border-radius: var(--mantine-radius-md);
+    border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }

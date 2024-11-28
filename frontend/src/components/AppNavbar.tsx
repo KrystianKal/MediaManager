@@ -1,10 +1,9 @@
 'use client'
-import {AppShell, NavLink, Skeleton} from "@mantine/core";
+import {AppShell, NavLink} from "@mantine/core";
 import React, {ReactElement} from "react";
-import {Icon, IconArchive, IconFolders, IconHome2, IconProps} from "@tabler/icons-react";
+import {IconArchive, IconFolders, IconHome2} from "@tabler/icons-react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
-import {string} from "zod";
 
 //skeleton
 // {Array(15)
