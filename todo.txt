@@ -1,0 +1,30 @@
+Search:
+    simple search
+    autocomplete
+    search by tag/collections/folders, exclude tags/collections/folders "nature -fall c:2020"
+    fuzzy search
+    
+
+Media:
+    *Individual media view, parallel routes. (Open modal on click)
+    Add floating menu at bottom right that contains all the selected media?
+    Show menu at the top when in selection mode:
+        Menu should allow for adding tags or adding to collection 
+    Add progress bar when generating thumbnails
+    Extract bitrate metadata from videos
+    Extract color information from thumbnails
+    Automatic pagination
+    Recommendations - show similar media
+    Add Tags to media
+    Show untagged media in separate 'Untagged' view/page
+    Remove Tags from media
+    
+    Add Pdf support
+    Attach mp4/video to Pdf (sheet music)
+    
+    
+Catalogue:
+    Model catalogues in backend
+    Add media to catalogue
+    
+    
